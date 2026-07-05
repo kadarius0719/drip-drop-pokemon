@@ -1,0 +1,57 @@
+# PokeDrop settings — copy to settings.yaml (via `python run.py init`) and fill in.
+# This file holds secrets once filled; settings.yaml is git-ignored.
+
+monitor:
+  poll_interval_seconds: 180      # base gap between check passes
+  jitter_seconds: 45              # random +/- so we don't hammer in lockstep
+  request_timeout_seconds: 20
+  # Identify yourself honestly. Put a real contact so retailers can reach you.
+  user_agent: "PokeDropMonitor/1.0 (personal restock alert; contact: you@example.com)"
+  respect_robots_txt: true
+  backoff_on_block_minutes: 60    # if a site blocks us, stop live-checking it this long
+
+reminders:
+  # Date-based reminders fire this many minutes before a watch's drop_time.
+  # These never touch a retailer — pure local scheduling. 1440=24h, 60=1h, 10=10min.
+  lead_times_minutes: [1440, 60, 10]
+
+alerts:
+  discord:
+    enabled: false
+    webhook_url: ""               # Server Settings → Integrations → Webhooks → New Webhook
+    mention: ""                   # optional, e.g. "<@your_user_id>" or "@here"
+  email:
+    enabled: false
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    use_tls: true
+    username: ""                  # your email address
+    password: ""                  # an APP PASSWORD, not your login password
+    from_addr: ""
+    to_addrs: []                  # e.g. ["you@example.com"]
+  macos:
+    enabled: true                 # native macOS Notification Center pop-ups
+
+# Best Buy has a free, sanctioned developer API — the cleanest legit stock check.
+# Get a key at https://developer.bestbuy.com/ and paste it here.
+bestbuy:
+  api_key: ""
+
+# Target's public RedSky API needs a "web key". A working default is built in; only
+# set this if Target checks start failing (grab the current key= value from a
+# target.com network request in your browser's dev tools).
+target:
+  web_key: ""
+
+# Reddit r/PokemonTCGDeals is the best legit early-warning that a preorder just
+# went live somewhere. Unauthenticated access is often blocked/rate-limited, so a
+# free "installed app" (https://www.reddit.com/prefs/apps → create app → type
+# "installed app") is strongly recommended: paste its client_id below (secret is
+# blank for installed apps). Without a client_id it falls back to the public feed.
+reddit_feed:
+  enabled: true
+  subreddits: ["PokemonTCGDeals"]
+  match_keywords: ["30th", "celebration"]   # only alert on posts mentioning these
+  min_interval_seconds: 120
+  client_id: ""
+  client_secret: ""

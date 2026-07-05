@@ -1,0 +1,20 @@
+# Secrets & local state — never commit
+config/settings.yaml
+config/watchlist.yaml
+data/state.json
+data/prep.json
+data/dashboard.html
+data/events.jsonl
+data/monitor.log
+data/monitor.err
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Editor / tooling runtime artifacts
+.claude/
+.DS_Store

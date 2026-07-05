@@ -1,0 +1,198 @@
+# PokeDrop watchlist — the Pokémon TCG "30th Celebration" line (global launch 2026-09-16).
+# Copy to watchlist.yaml (via `python run.py init`) and tune.
+#
+# source:
+#   reminder  -> no live scraping; date-based reminders only. Used for heavily
+#                bot-protected retailers (Pokémon Center, Walmart, GameStop).
+#   target    -> Target RedSky public API (needs `tcin`)
+#   bestbuy   -> Best Buy developer API (needs `sku` + bestbuy.api_key in settings)
+#   page      -> polite keyword check of a normal product page (low-bot sites, e.g. B&N)
+#
+# drop_time: set this to the actual PREORDER open datetime once a retailer announces
+#   it (ISO8601 with timezone). Until then it's seeded to the confirmed street date
+#   so you still get release-day reminders. Reminders fire at settings.reminders.
+#
+# TIP: as of the 2026-07-04 research, preorder pages / TCINs / SKUs were not yet
+# published for most retailers. The reminder watches below work NOW. Fill in the
+# `target` / `bestbuy` / `page` templates at the bottom once product pages go live.
+
+watches:
+  # ---- Wave 1: September 16, 2026 -----------------------------------------
+  - id: etb-30th
+    name: "30th Celebration Elite Trainer Box"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 49.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+    notes: "Nidorina artwork. PC-exclusive variant has 11 packs + 2 promos."
+
+  - id: etb-30th-pc-exclusive
+    name: "30th Celebration ETB — Pokémon Center Exclusive"
+    retailer: "Pokémon Center"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 49.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+    notes: "PC exclusive; MSRP unconfirmed (>= standard $49.99). PC drops open quietly ~78 days early."
+
+  - id: ex-box-30th
+    name: "30th Celebration Pokémon ex Box (Sylveon ex / Greninja ex)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 21.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+
+  - id: poster-collection-30th
+    name: "30th Celebration Poster Collection (Articuno/Zapdos/Moltres)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 14.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+
+  - id: tech-sticker-30th
+    name: "30th Celebration Tech Sticker Collection (Alolan Exeggutor/Lucario)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 14.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+
+  - id: knockout-eevee-30th
+    name: "30th Celebration Knock Out Collection (Eevee)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 9.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+
+  - id: blister-eevee-30th
+    name: "30th Celebration 2-Pack Blister (Eevee)"
+    retailer: "Target/Walmart/GameStop"
+    source: reminder
+    url: "https://www.target.com/c/pokemon-trading-cards/-/N-5xt9d"
+    msrp_usd: 9.99
+    release_date: "2026-09-16"
+    drop_time: "2026-09-16T08:00:00-04:00"
+
+  # ---- Wave 2: October 2, 2026 --------------------------------------------
+  - id: booster-bundle-30th
+    name: "30th Celebration Booster Bundle (6 packs)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 26.94
+    release_date: "2026-10-02"
+    drop_time: "2026-10-02T08:00:00-04:00"
+
+  - id: binder-collection-30th
+    name: "30th Celebration Binder Collection (binder + 5 packs)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 31.99
+    release_date: "2026-10-02"
+    drop_time: "2026-10-02T08:00:00-04:00"
+
+  - id: mini-tins-30th
+    name: "30th Celebration Day & Night Mini Tins (10 designs)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 9.99
+    release_date: "2026-10-02"
+    drop_time: "2026-10-02T08:00:00-04:00"
+
+  # ---- Wave 3: October 30, 2026 -------------------------------------------
+  - id: battle-decks-30th
+    name: "30th Celebration Battle Decks (Espeon ex / Umbreon ex)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 19.99
+    release_date: "2026-10-30"
+    drop_time: "2026-10-30T08:00:00-04:00"
+
+  # ---- Wave 4: November 6, 2026 (flagship day) ----------------------------
+  - id: upc-day-night-30th
+    name: "30th Celebration Ultra-Premium Collection — Day & Night"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 179.99
+    release_date: "2026-11-06"
+    drop_time: "2026-11-06T08:00:00-05:00"
+    notes: "The flagship. 29 packs + 1 Classic Collection pack. Expect the fiercest competition."
+
+  - id: ditto-premium-30th
+    name: "30th Celebration Ditto Premium Collection"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 39.99
+    release_date: "2026-11-06"
+    drop_time: "2026-11-06T08:00:00-05:00"
+
+  - id: mewtwo-mew-figures-30th
+    name: "30th Celebration Mewtwo & Mew Figure Collections"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 29.99
+    release_date: "2026-11-06"
+    drop_time: "2026-11-06T08:00:00-05:00"
+
+  # ---- Wave 5: December 4, 2026 -------------------------------------------
+  - id: ex-tin-30th
+    name: "30th Celebration Pokémon ex Tin (Sylveon ex / Greninja ex)"
+    retailer: "Pokémon Center + retailers"
+    source: reminder
+    url: "https://www.pokemoncenter.com/category/trading-card-game"
+    msrp_usd: 21.99
+    release_date: "2026-12-04"
+    drop_time: "2026-12-04T08:00:00-05:00"
+
+  # ---- LIVE-CHECK TEMPLATES (disabled until product pages exist) ----------
+  # Once a retailer publishes the preorder page, fill in the id and flip enabled: true.
+
+  # Target: open the product page, copy the TCIN (the numeric id in the URL / page).
+  - id: etb-30th-target
+    name: "30th Celebration ETB — Target (live check)"
+    retailer: "Target"
+    source: target
+    url: "https://www.target.com/"      # replace with the real product URL
+    tcin: ""                             # <-- paste the TCIN here, then enable
+    msrp_usd: 49.99
+    release_date: "2026-09-16"
+    enabled: false
+
+  # Best Buy: needs bestbuy.api_key in settings.yaml + the product SKU.
+  - id: etb-30th-bestbuy
+    name: "30th Celebration ETB — Best Buy (live check)"
+    retailer: "Best Buy"
+    source: bestbuy
+    url: "https://www.bestbuy.com/"      # replace with the real product URL
+    sku: ""                              # <-- paste the Best Buy SKU here, then enable
+    msrp_usd: 49.99
+    release_date: "2026-09-16"
+    enabled: false
+
+  # Barnes & Noble: low bot protection — a polite page keyword check works here.
+  - id: etb-30th-bn
+    name: "30th Celebration ETB — Barnes & Noble (live check)"
+    retailer: "Barnes & Noble"
+    source: page
+    url: "https://www.barnesandnoble.com/"   # replace with the real product URL
+    msrp_usd: 49.99
+    release_date: "2026-09-16"
+    enabled: false
+    in_stock_keywords: ["add to cart", "pre-order"]
+    out_of_stock_keywords: ["sold out", "out of stock", "unavailable"]

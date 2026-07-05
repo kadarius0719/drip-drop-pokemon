@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Run PokeDrop as a background monitor via launchd (macOS).
+
+  Install:
+    cp scripts/com.pokedrop.monitor.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.pokedrop.monitor.plist
+
+  Stop / uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.pokedrop.monitor.plist
+
+  Logs stream to data/monitor.log and data/monitor.err.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pokedrop.monitor</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/beaumorton/code/vibes/pokemon_drop/.venv/bin/python</string>
+        <string>/Users/beaumorton/code/vibes/pokemon_drop/run.py</string>
+        <string>watch</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/beaumorton/code/vibes/pokemon_drop</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/beaumorton/code/vibes/pokemon_drop/data/monitor.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/beaumorton/code/vibes/pokemon_drop/data/monitor.err</string>
+</dict>
+</plist>
