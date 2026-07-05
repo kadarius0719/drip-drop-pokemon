@@ -1,5 +1,7 @@
 # PokeDrop
 
+[![CI](https://github.com/kadarius0719/drip-drop-pokemon/actions/workflows/ci.yml/badge.svg)](https://github.com/kadarius0719/drip-drop-pokemon/actions/workflows/ci.yml)
+
 A personal **drop tracker + alert-and-prep** tool for Pokémon TCG releases — built
 first for the **30th Celebration** line (global launch **Sept 16, 2026**).
 
