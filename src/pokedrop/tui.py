@@ -263,7 +263,8 @@ class PokeDropApp(App):
         # Topline: next drop + monitor state.
         if soonest:
             secs, w = soonest
-            next_drop = f"Next drop: {w.name[:40]} in {_fmt_secs(secs)}"
+            name = w.name if len(w.name) <= 38 else w.name[:37].rstrip() + "…"
+            next_drop = f"Next drop: {name} in {_fmt_secs(secs)}"
         else:
             next_drop = "Next drop: —"
         if self.checking:

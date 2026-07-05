@@ -50,12 +50,12 @@ def _status_for(watch: Watch, state: dict) -> str:
     return ws.get("last_status", "unknown")
 
 
-def render_cli(watches: list[Watch]) -> None:
+def render_cli(watches: list[Watch], console=None) -> None:
     from rich.console import Console
     from rich.table import Table
 
     state = load_state()
-    console = Console()
+    console = console or Console()
     table = Table(title="PokeDrop — 30th Celebration watchlist", header_style="bold")
     for col in ("Product", "Retailer", "MSRP", "Release", "Countdown", "Source", "Status"):
         table.add_column(col)

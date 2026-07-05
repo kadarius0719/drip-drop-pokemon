@@ -5,6 +5,11 @@
 A personal **drop tracker + alert-and-prep** tool for Pokémon TCG releases — built
 first for the **30th Celebration** line (global launch **Sept 16, 2026**).
 
+📖 **New here? Start with the [User Guide](docs/USER_GUIDE.md)** — every feature
+explained with real screenshots. API details live in [docs/APIS.md](docs/APIS.md).
+
+![The PokeDrop live dashboard](docs/images/tui-main.svg)
+
 It tells *you* the moment a preorder/restock goes live and helps you be ready to
 check out fast at MSRP retailers. **You** make every purchase, by hand.
 
