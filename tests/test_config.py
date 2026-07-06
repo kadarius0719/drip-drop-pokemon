@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 from pokedrop.config import ConfigError, load_events, load_settings, load_watches
-from tests.conftest import EXAMPLE_WATCHLIST
+
+EXAMPLE_WATCHLIST = Path(__file__).resolve().parent.parent / "config" / "watchlist.example.yaml"
 
 
 def test_load_example_settings(settings):
