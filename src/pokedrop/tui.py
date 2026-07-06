@@ -19,12 +19,12 @@ from datetime import datetime, timezone
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.screen import Screen
-from textual.widgets import DataTable, Footer, Header, RichLog, Static
+from textual.widgets import DataTable, Footer, Header, RichLog, Static, TabbedContent, TabPane
 from textual.worker import get_current_worker
 
 from .config import Settings
 from .engine import events_path, run_once
-from .models import Watch
+from .models import ALL_TAB_ID, OTHER_TAB_ID, Event, Watch, pane_id as _pane_id
 from .prep import PREP_ITEMS, load_done, mark
 from .state import load_state
 
@@ -116,7 +116,9 @@ class PokeDropApp(App):
         background: $surface;
         color: $text;
     }
-    #watchlist { height: 1fr; }
+    TabbedContent { height: 1fr; }
+    TabPane { padding: 0; }
+    .event-notes { height: 1; color: $text-muted; padding: 0 1; }
     #events {
         height: 10;
         border-top: heavy $primary;
@@ -129,52 +131,92 @@ class PokeDropApp(App):
         Binding("c", "check_now", "Check now"),
         Binding("o", "open_url", "Open product"),
         Binding("p", "prep", "Prep list"),
+        Binding("left_square_bracket", "prev_tab", "Prev tab", key_display="["),
+        Binding("right_square_bracket", "next_tab", "Next tab", key_display="]"),
         Binding("q", "quit", "Quit"),
     ]
 
-    def __init__(self, settings: Settings, watches: list[Watch], *,
+    def __init__(self, settings: Settings, watches: list[Watch],
+                 events: dict[str, Event] | None = None, *,
                  auto_check: bool = True):
         super().__init__()
         self.settings = settings
         self.watches = watches
+        self.events = events or {}
         self.auto_check = auto_check
         self.checking = False
         # First pass shortly after launch, then every poll_interval ± jitter.
         self.next_check_at = time.monotonic() + 3
-        self._row_order: list[Watch] = []
         self._events_offset = 0
+        # pane id -> the watches shown in that tab, in table row order.
+        self._tab_watches: dict[str, list[Watch]] = {}
 
     # ---------- layout ----------
+
+    def _tab_plan(self) -> list[tuple[str, str, str, list[Watch]]]:
+        """(pane_id, title, notes, watches) per tab: All, one per event, Other."""
+        ordered = sorted(
+            self.watches, key=lambda w: (not w.enabled, w.release_date or "9999", w.name)
+        )
+        plan = [(ALL_TAB_ID, "All", "", ordered)]
+        # Config load rejects colliding event keys; the suffixing below is
+        # defense-in-depth for events dicts built in code (tests, scripts).
+        used = {ALL_TAB_ID, OTHER_TAB_ID}
+        for key, ev in self.events.items():
+            group = [w for w in ordered if w.event == key]
+            if not group:
+                continue
+            pid = _pane_id(key)
+            n = 2
+            while pid in used:
+                pid = f"{_pane_id(key)}-{n}"
+                n += 1
+            used.add(pid)
+            plan.append((pid, ev.title, ev.notes, group))
+        ungrouped = [w for w in ordered if not w.event]
+        if ungrouped and len(plan) > 1:
+            plan.append((OTHER_TAB_ID, "Other", "", ungrouped))
+        return plan
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         yield Static(id="topline")
-        yield DataTable(id="watchlist", cursor_type="row")
+        with TabbedContent(initial=ALL_TAB_ID):
+            for pane_id, title, notes, _ in self._tab_plan():
+                with TabPane(title, id=pane_id):
+                    if notes:
+                        yield Static(notes, classes="event-notes")
+                    yield DataTable(cursor_type="row")
         yield RichLog(id="events", wrap=True, markup=False, max_lines=500)
         yield Footer()
 
     def on_mount(self) -> None:
-        table = self.query_one("#watchlist", DataTable)
-        table.add_columns(
-            ("Product", "product"), ("Retailer", "retailer"), ("MSRP", "msrp"),
-            ("Drop in", "countdown"), ("Source", "source"), ("Status", "status"),
-        )
-        self._row_order = sorted(
-            self.watches, key=lambda w: (not w.enabled, w.release_date or "9999", w.name)
-        )
         state = load_state()
-        for w in self._row_order:
-            table.add_row(
-                w.name[:52],
-                w.retailer[:24],
-                f"${w.msrp_usd:.2f}" if w.msrp_usd else "—",
-                "…",
-                w.source,
-                _status_text(w, state),
-                key=w.id,
+        for pane_id, _, _, group in self._tab_plan():
+            self._tab_watches[pane_id] = group
+            table = self.query_one(f"#{pane_id} DataTable", DataTable)
+            table.add_columns(
+                ("Product", "product"), ("Retailer", "retailer"), ("MSRP", "msrp"),
+                ("Drop in", "countdown"), ("Source", "source"), ("Status", "status"),
             )
+            for w in group:
+                table.add_row(
+                    w.name[:52],
+                    w.retailer[:24],
+                    f"${w.msrp_usd:.2f}" if w.msrp_usd else "—",
+                    "…",
+                    w.source,
+                    _status_text(w, state),
+                    key=w.id,
+                )
         self._load_event_history()
         self.set_interval(1.0, self._tick)
+
+    def _active_pane_id(self) -> str:
+        return self.query_one(TabbedContent).active or ALL_TAB_ID
+
+    def _active_table(self) -> DataTable:
+        return self.query_one(f"#{self._active_pane_id()} DataTable", DataTable)
 
     # ---------- event feed ----------
 
@@ -246,19 +288,23 @@ class PokeDropApp(App):
 
     def _tick(self) -> None:
         now = datetime.now(timezone.utc)
-        table = self.query_one("#watchlist", DataTable)
+        active = self._active_pane_id()
         soonest: tuple[float, Watch] | None = None
 
-        for w in self._row_order:
-            drop = _drop_at(w)
-            if drop is None:
-                continue
-            secs = (drop - now).total_seconds()
-            # "NOW" only within a one-hour grace window; long-past drops show "past".
-            cell = _fmt_secs(secs) if secs > -3600 else "past"
-            table.update_cell(w.id, "countdown", cell, update_width=True)
-            if w.enabled and secs > 0 and (soonest is None or secs < soonest[0]):
-                soonest = (secs, w)
+        for pane_id, group in self._tab_watches.items():
+            table = self.query_one(f"#{pane_id} DataTable", DataTable)
+            for w in group:
+                drop = _drop_at(w)
+                if drop is None:
+                    continue
+                secs = (drop - now).total_seconds()
+                # "NOW" only within a one-hour grace window; long-past drops show "past".
+                cell = _fmt_secs(secs) if secs > -3600 else "past"
+                table.update_cell(w.id, "countdown", cell, update_width=True)
+                # "Next drop" scopes to the tab you're looking at.
+                if (pane_id == active and w.enabled and secs > 0
+                        and (soonest is None or secs < soonest[0])):
+                    soonest = (secs, w)
 
         # Topline: next drop + monitor state.
         if soonest:
@@ -326,24 +372,37 @@ class PokeDropApp(App):
         mon = self.settings.monitor
         jitter = random.randint(-mon.jitter_seconds, mon.jitter_seconds)
         self.next_check_at = time.monotonic() + max(30, mon.poll_interval_seconds + jitter)
-        # Refresh statuses from the state file the engine just wrote.
+        # Refresh statuses from the state file the engine just wrote — every tab.
         state = load_state()
-        table = self.query_one("#watchlist", DataTable)
-        for w in self._row_order:
-            table.update_cell(w.id, "status", _status_text(w, state), update_width=True)
+        for pane_id, group in self._tab_watches.items():
+            table = self.query_one(f"#{pane_id} DataTable", DataTable)
+            for w in group:
+                table.update_cell(w.id, "status", _status_text(w, state), update_width=True)
         self._tail_events()
 
     # ---------- other actions ----------
 
     def action_open_url(self) -> None:
-        table = self.query_one("#watchlist", DataTable)
-        row = table.cursor_row
-        if 0 <= row < len(self._row_order):
-            webbrowser.open(self._row_order[row].url)
+        group = self._tab_watches.get(self._active_pane_id(), [])
+        row = self._active_table().cursor_row
+        if 0 <= row < len(group):
+            webbrowser.open(group[row].url)
 
     def action_prep(self) -> None:
         self.push_screen(PrepScreen())
 
+    def action_next_tab(self, step: int = 1) -> None:
+        tabs = self.query_one(TabbedContent)
+        panes = list(self._tab_watches)
+        if len(panes) < 2:
+            return
+        i = panes.index(tabs.active) if tabs.active in panes else 0
+        tabs.active = panes[(i + step) % len(panes)]
 
-def run_tui(settings: Settings, watches: list[Watch]) -> None:
-    PokeDropApp(settings, watches).run()
+    def action_prev_tab(self) -> None:
+        self.action_next_tab(-1)
+
+
+def run_tui(settings: Settings, watches: list[Watch],
+            events: dict[str, Event] | None = None) -> None:
+    PokeDropApp(settings, watches, events).run()

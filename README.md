@@ -92,6 +92,9 @@ Verify the channels:
 
 `./.venv/bin/python run.py ui` opens an always-on terminal dashboard:
 
+- **Drop-event tabs** (`[` / `]` to switch) — one tab per release wave, defined in
+  the watchlist's `events:` section. Tabs filter the view only; monitoring and
+  alerts always cover every tab.
 - **Watchlist** with per-product countdowns ticking every second and live statuses.
 - **Event feed** at the bottom — availability alerts, reminders, and Reddit matches
   appear as they happen (persisted to `data/events.jsonl`).

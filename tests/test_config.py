@@ -1,6 +1,7 @@
 import pytest
 
-from pokedrop.config import ConfigError, load_settings, load_watches
+from pokedrop.config import ConfigError, load_events, load_settings, load_watches
+from tests.conftest import EXAMPLE_WATCHLIST
 
 
 def test_load_example_settings(settings):
@@ -52,3 +53,59 @@ def test_missing_required_field_rejected(tmp_path):
 def test_missing_file_gives_helpful_error(tmp_path):
     with pytest.raises(ConfigError, match="init"):
         load_settings(tmp_path / "nope.yaml")
+
+
+def test_example_events_section(watches):
+    events = load_events(EXAMPLE_WATCHLIST)
+    assert list(events) == ["30th-celebration"]
+    assert events["30th-celebration"].title == "30th Celebration"
+    assert events["30th-celebration"].notes  # wave dates present
+    # Every shipped watch is tagged into the event.
+    assert all(w.event == "30th-celebration" for w in watches)
+
+
+def test_undefined_event_key_rejected(tmp_path):
+    p = tmp_path / "wl.yaml"
+    p.write_text(
+        "events:\n  real-ev: {title: Real}\n"
+        "watches:\n"
+        "  - {id: a, name: A, retailer: R, url: 'http://x', event: tyop-ev}\n"
+    )
+    with pytest.raises(ConfigError, match="undefined event 'tyop-ev'"):
+        load_watches(p)
+
+
+def test_event_optional_and_events_section_optional(tmp_path):
+    p = tmp_path / "wl.yaml"
+    p.write_text("watches:\n  - {id: a, name: A, retailer: R, url: 'http://x'}\n")
+    assert load_events(p) == {}
+    ws = load_watches(p)
+    assert ws[0].event == ""
+
+
+def test_blank_event_value_means_ungrouped(tmp_path):
+    # `event:` with no value parses as YAML null — must mean ungrouped, not "None".
+    p = tmp_path / "wl.yaml"
+    p.write_text(
+        "watches:\n"
+        "  - id: a\n    name: A\n    retailer: R\n    url: 'http://x'\n    event:\n"
+    )
+    assert load_watches(p)[0].event == ""
+
+
+def test_colliding_event_keys_rejected(tmp_path):
+    # 'wave 1' and 'wave-1' both sanitize to tab id 'tab-wave-1' -> would crash the TUI.
+    p = tmp_path / "wl.yaml"
+    p.write_text(
+        "events:\n  wave 1: {title: A}\n  wave-1: {title: B}\nwatches: []\n"
+    )
+    with pytest.raises(ConfigError, match="too similar"):
+        load_events(p)
+
+
+def test_reserved_event_keys_rejected(tmp_path):
+    for key in ("all", "other"):
+        p = tmp_path / f"wl-{key}.yaml"
+        p.write_text(f"events:\n  {key}: {{title: X}}\nwatches: []\n")
+        with pytest.raises(ConfigError, match="reserved"):
+            load_events(p)

@@ -56,13 +56,18 @@ def render_cli(watches: list[Watch], console=None) -> None:
 
     state = load_state()
     console = console or Console()
-    table = Table(title="PokeDrop — 30th Celebration watchlist", header_style="bold")
-    for col in ("Product", "Retailer", "MSRP", "Release", "Countdown", "Source", "Status"):
+    # Group by drop event when more than one is in play; otherwise keep it flat.
+    grouped = sorted({w.event for w in watches})
+    show_event = len(grouped) > 1
+    table = Table(title="PokeDrop watchlist", header_style="bold")
+    cols = (("Event",) if show_event else ()) + (
+        "Product", "Retailer", "MSRP", "Release", "Countdown", "Source", "Status")
+    for col in cols:
         table.add_column(col)
 
-    for w in sorted(watches, key=lambda x: (x.release_date or "9999", x.name)):
+    for w in sorted(watches, key=lambda x: (x.event, x.release_date or "9999", x.name)):
         rel = _parse_release(w)
-        table.add_row(
+        row = (
             w.name,
             w.retailer,
             f"${w.msrp_usd:.2f}" if w.msrp_usd else "—",
@@ -71,6 +76,7 @@ def render_cli(watches: list[Watch], console=None) -> None:
             w.source,
             _STATUS_LABEL.get(_status_for(w, state), _status_for(w, state)),
         )
+        table.add_row(*(((w.event or "—",) if show_event else ()) + row))
     console.print(table)
 
     done = load_done()
@@ -84,7 +90,14 @@ def render_html(watches: list[Watch], settings: Settings, out_path: Path | None 
     done = load_done()
 
     rows = []
-    for w in sorted(watches, key=lambda x: (x.release_date or "9999", x.name)):
+    show_event = len({w.event for w in watches}) > 1
+    last_event = object()
+    for w in sorted(watches, key=lambda x: (x.event, x.release_date or "9999", x.name)):
+        if show_event and w.event != last_event:
+            last_event = w.event
+            label = escape(w.event or "Other")
+            rows.append(f"""
+      <tr><td colspan="7" style="background:#1a1a2e;font-weight:bold;">{label}</td></tr>""")
         rel = _parse_release(w)
         status = _status_for(w, state)
         rows.append(f"""

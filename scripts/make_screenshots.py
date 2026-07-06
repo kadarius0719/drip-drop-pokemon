@@ -70,21 +70,35 @@ def stage_demo_data(data_dir: Path) -> None:
 
 
 def demo_config():
-    from pokedrop.config import load_settings, load_watches
+    from pokedrop.config import load_events, load_settings, load_watches
+    from pokedrop.models import Event, Watch
     settings = load_settings(ROOT / "config" / "settings.example.yaml")
     settings.discord.enabled = True  # so the topline shows configured channels
     watches = load_watches(ROOT / "config" / "watchlist.example.yaml")
     for w in watches:
         w.enabled = True  # show the live-check template rows too
-    return settings, watches
+    events = load_events(ROOT / "config" / "watchlist.example.yaml")
+    # A second (clearly-example) event so the tab bar is visible in the docs.
+    events["next-set"] = Event(key="next-set", title="Next Set (example)",
+                               notes="Example of a second drop event tab")
+    watches += [
+        Watch(id="demo-next-etb", name="Next Set Elite Trainer Box", retailer="Target",
+              url="https://www.target.com/", source="reminder", event="next-set",
+              msrp_usd=49.99, release_date="2026-11-14",
+              drop_time="2026-11-14T09:00:00-05:00"),
+        Watch(id="demo-next-bb", name="Next Set Booster Bundle", retailer="Best Buy",
+              url="https://www.bestbuy.com/", source="reminder", event="next-set",
+              msrp_usd=26.94, release_date="2026-11-14"),
+    ]
+    return settings, watches, events
 
 
 async def shoot_tui() -> None:
     from textual.widgets import DataTable
     from pokedrop.tui import PokeDropApp
 
-    settings, watches = demo_config()
-    app = PokeDropApp(settings, watches, auto_check=False)
+    settings, watches, events = demo_config()
+    app = PokeDropApp(settings, watches, events, auto_check=False)
     async with app.run_test(size=SIZE) as pilot:
         await pilot.pause()
         # Make the topline read like a normal running monitor, not the test rig.
@@ -107,7 +121,7 @@ def shoot_cli_status() -> None:
     from rich.console import Console
     from pokedrop.dashboard import render_cli
 
-    _, watches = demo_config()
+    _, watches, _events = demo_config()
     console = Console(record=True, width=150, file=open(os.devnull, "w"))
     render_cli(watches, console=console)
     (IMAGES / "cli-status.svg").write_text(

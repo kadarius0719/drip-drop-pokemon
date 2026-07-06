@@ -16,9 +16,15 @@
 # published for most retailers. The reminder watches below work NOW. Fill in the
 # `target` / `bestbuy` / `page` templates at the bottom once product pages go live.
 
+events:
+  30th-celebration:
+    title: "30th Celebration"
+    notes: "Wave 1: Sept 16, 2026 · Wave 2: Dec 4, 2026 · preorders open quietly ~78 days early on Pokémon Center"
+
 watches:
   # ---- Wave 1: September 16, 2026 -----------------------------------------
   - id: etb-30th
+    event: 30th-celebration
     name: "30th Celebration Elite Trainer Box"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -29,6 +35,7 @@ watches:
     notes: "Nidorina artwork. PC-exclusive variant has 11 packs + 2 promos."
 
   - id: etb-30th-pc-exclusive
+    event: 30th-celebration
     name: "30th Celebration ETB — Pokémon Center Exclusive"
     retailer: "Pokémon Center"
     source: reminder
@@ -39,6 +46,7 @@ watches:
     notes: "PC exclusive; MSRP unconfirmed (>= standard $49.99). PC drops open quietly ~78 days early."
 
   - id: ex-box-30th
+    event: 30th-celebration
     name: "30th Celebration Pokémon ex Box (Sylveon ex / Greninja ex)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -48,6 +56,7 @@ watches:
     drop_time: "2026-09-16T08:00:00-04:00"
 
   - id: poster-collection-30th
+    event: 30th-celebration
     name: "30th Celebration Poster Collection (Articuno/Zapdos/Moltres)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -57,6 +66,7 @@ watches:
     drop_time: "2026-09-16T08:00:00-04:00"
 
   - id: tech-sticker-30th
+    event: 30th-celebration
     name: "30th Celebration Tech Sticker Collection (Alolan Exeggutor/Lucario)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -66,6 +76,7 @@ watches:
     drop_time: "2026-09-16T08:00:00-04:00"
 
   - id: knockout-eevee-30th
+    event: 30th-celebration
     name: "30th Celebration Knock Out Collection (Eevee)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -75,6 +86,7 @@ watches:
     drop_time: "2026-09-16T08:00:00-04:00"
 
   - id: blister-eevee-30th
+    event: 30th-celebration
     name: "30th Celebration 2-Pack Blister (Eevee)"
     retailer: "Target/Walmart/GameStop"
     source: reminder
@@ -85,6 +97,7 @@ watches:
 
   # ---- Wave 2: October 2, 2026 --------------------------------------------
   - id: booster-bundle-30th
+    event: 30th-celebration
     name: "30th Celebration Booster Bundle (6 packs)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -94,6 +107,7 @@ watches:
     drop_time: "2026-10-02T08:00:00-04:00"
 
   - id: binder-collection-30th
+    event: 30th-celebration
     name: "30th Celebration Binder Collection (binder + 5 packs)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -103,6 +117,7 @@ watches:
     drop_time: "2026-10-02T08:00:00-04:00"
 
   - id: mini-tins-30th
+    event: 30th-celebration
     name: "30th Celebration Day & Night Mini Tins (10 designs)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -113,6 +128,7 @@ watches:
 
   # ---- Wave 3: October 30, 2026 -------------------------------------------
   - id: battle-decks-30th
+    event: 30th-celebration
     name: "30th Celebration Battle Decks (Espeon ex / Umbreon ex)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -123,6 +139,7 @@ watches:
 
   # ---- Wave 4: November 6, 2026 (flagship day) ----------------------------
   - id: upc-day-night-30th
+    event: 30th-celebration
     name: "30th Celebration Ultra-Premium Collection — Day & Night"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -133,6 +150,7 @@ watches:
     notes: "The flagship. 29 packs + 1 Classic Collection pack. Expect the fiercest competition."
 
   - id: ditto-premium-30th
+    event: 30th-celebration
     name: "30th Celebration Ditto Premium Collection"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -142,6 +160,7 @@ watches:
     drop_time: "2026-11-06T08:00:00-05:00"
 
   - id: mewtwo-mew-figures-30th
+    event: 30th-celebration
     name: "30th Celebration Mewtwo & Mew Figure Collections"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -152,6 +171,7 @@ watches:
 
   # ---- Wave 5: December 4, 2026 -------------------------------------------
   - id: ex-tin-30th
+    event: 30th-celebration
     name: "30th Celebration Pokémon ex Tin (Sylveon ex / Greninja ex)"
     retailer: "Pokémon Center + retailers"
     source: reminder
@@ -165,6 +185,7 @@ watches:
 
   # Target: open the product page, copy the TCIN (the numeric id in the URL / page).
   - id: etb-30th-target
+    event: 30th-celebration
     name: "30th Celebration ETB — Target (live check)"
     retailer: "Target"
     source: target
@@ -176,6 +197,7 @@ watches:
 
   # Best Buy: needs bestbuy.api_key in settings.yaml + the product SKU.
   - id: etb-30th-bestbuy
+    event: 30th-celebration
     name: "30th Celebration ETB — Best Buy (live check)"
     retailer: "Best Buy"
     source: bestbuy
@@ -187,6 +209,7 @@ watches:
 
   # Barnes & Noble: low bot protection — a polite page keyword check works here.
   - id: etb-30th-bn
+    event: 30th-celebration
     name: "30th Celebration ETB — Barnes & Noble (live check)"
     retailer: "Barnes & Noble"
     source: page

@@ -43,9 +43,16 @@ def cmd_init(_args) -> None:
         print("then run `python run.py test-alerts` to verify, and `python run.py status`.")
 
 
-def cmd_status(_args) -> None:
+def cmd_status(args) -> None:
     settings, watches = _load_or_exit()
+    from .config import load_events
     from .dashboard import render_cli
+    if getattr(args, "event", None) is not None:
+        events = load_events()
+        if args.event not in events:
+            print(f"Unknown event '{args.event}'. Defined: {', '.join(sorted(events)) or '(none)'}")
+            raise SystemExit(2)
+        watches = [w for w in watches if w.event == args.event]
     render_cli(watches)
 
 
@@ -72,8 +79,9 @@ def cmd_watch(_args) -> None:
 
 def cmd_ui(_args) -> None:
     settings, watches = _load_or_exit()
+    from .config import load_events
     from .tui import run_tui
-    run_tui(settings, watches)
+    run_tui(settings, watches, load_events())
 
 
 def cmd_dashboard(_args) -> None:
@@ -130,7 +138,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
 
     sub.add_parser("init", help="create config files from the example templates").set_defaults(func=cmd_init)
-    sub.add_parser("status", help="show the watchlist + current statuses").set_defaults(func=cmd_status)
+    st = sub.add_parser("status", help="show the watchlist + current statuses")
+    st.add_argument("--event", help="only show watches for this drop event key")
+    st.set_defaults(func=cmd_status)
     sub.add_parser("list", help="list configured watches").set_defaults(func=cmd_list)
 
     c = sub.add_parser("check", help="run one check pass (fires alerts)")

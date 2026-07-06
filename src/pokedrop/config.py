@@ -9,7 +9,7 @@ from typing import Optional
 
 import yaml
 
-from .models import Watch
+from .models import ALL_TAB_ID, OTHER_TAB_ID, Event, Watch, pane_id
 
 # Project root = two levels up from this file (src/pokedrop/config.py -> project root).
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -186,12 +186,56 @@ def load_settings(path: Optional[Path] = None) -> Settings:
     )
 
 
+def _events_from_raw(raw: dict, path: Path) -> dict[str, Event]:
+    section = raw.get("events", {}) or {}
+    if not isinstance(section, dict):
+        raise ConfigError(f"{path}: 'events' must be a mapping of key -> {{title, notes}}.")
+    events: dict[str, Event] = {}
+    pane_ids: dict[str, str] = {}  # sanitized pane id -> event key that claimed it
+    for key, val in section.items():
+        key = str(key)
+        val = val or {}
+        if not isinstance(val, dict):
+            raise ConfigError(f"{path}: event '{key}' must be a mapping (title/notes).")
+        # Event keys become TUI tab widget ids after sanitization; collisions
+        # (with each other or the reserved All/Other tabs) would crash the TUI
+        # at startup with a widget-id traceback — reject here with a YAML-facing
+        # error instead.
+        pid = pane_id(key)
+        if pid in (ALL_TAB_ID, OTHER_TAB_ID):
+            raise ConfigError(
+                f"{path}: event key '{key}' clashes with the reserved "
+                f"'{pid.removeprefix('tab-')}' tab. Pick another key."
+            )
+        if pid in pane_ids:
+            raise ConfigError(
+                f"{path}: event keys '{pane_ids[pid]}' and '{key}' are too similar "
+                f"(both become tab id '{pid}'). Rename one."
+            )
+        pane_ids[pid] = key
+        events[key] = Event(
+            key=key,
+            title=str(val.get("title", key)),
+            notes=str(val.get("notes", "")),
+        )
+    return events
+
+
+def load_events(path: Optional[Path] = None) -> dict[str, Event]:
+    """Parse the optional `events:` section of the watchlist (drop-event tabs)."""
+    path = path or (config_dir() / "watchlist.yaml")
+    return _events_from_raw(_load_yaml(path), path)
+
+
 def load_watches(path: Optional[Path] = None) -> list[Watch]:
     path = path or (config_dir() / "watchlist.yaml")
     raw = _load_yaml(path)
     entries = raw.get("watches", []) or []
     if not isinstance(entries, list):
         raise ConfigError(f"{path}: 'watches' must be a list.")
+    # Same raw mapping — one read, so watches are always validated against the
+    # events snapshot from the same parse.
+    event_keys = set(_events_from_raw(raw, path))
 
     watches: list[Watch] = []
     seen_ids: set[str] = set()
@@ -212,6 +256,15 @@ def load_watches(path: Optional[Path] = None) -> list[Watch]:
                 f"{path}: watch '{wid}' has invalid source '{source}'. "
                 f"Valid: {', '.join(sorted(valid_sources))}."
             )
+        # `or ""` so a blank `event:` line (YAML null) means ungrouped, not "None".
+        event = str(e.get("event") or "")
+        if event and event not in event_keys:
+            # Reject typos loudly — a silently misfiled watch would hide in the wrong tab.
+            raise ConfigError(
+                f"{path}: watch '{wid}' references undefined event '{event}'. "
+                f"Add it to the 'events:' section or fix the key. "
+                f"Defined: {', '.join(sorted(event_keys)) or '(none)'}."
+            )
         watches.append(
             Watch(
                 id=wid,
@@ -229,6 +282,7 @@ def load_watches(path: Optional[Path] = None) -> list[Watch]:
                 out_of_stock_keywords=list(e.get("out_of_stock_keywords", []) or []),
                 enabled=bool(e.get("enabled", True)),
                 notes=str(e.get("notes", "")),
+                event=event,
             )
         )
     return watches

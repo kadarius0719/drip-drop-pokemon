@@ -31,6 +31,17 @@ Reading the screen, top to bottom:
 - *Alerts* — which channels are enabled (`discord+macos` above). If it says
   `NONE — edit settings.yaml!`, alerts are going nowhere; fix that first.
 
+**Drop-event tabs** — the row under the topline (`All · 30th Celebration · …`).
+Each tab is one *drop event* (a release wave defined in your watchlist), so when
+you're tracking several drops at once you can focus on one without losing the
+others. Switch with `[` / `]` or by clicking. Two things to know:
+
+- The topline's *Next drop* scopes to the tab you're on; a tab can also show its
+  event's notes (wave dates etc.) above the table.
+- Tabs filter your **attention, not the monitoring**: every watch on every tab
+  keeps being checked, and alerts fire globally — a 🟢 on a background tab still
+  pings you. A tab you're not looking at can never cost you a box.
+
 **Watchlist table** — one row per product-at-a-retailer:
 
 | Column | Meaning |
@@ -64,7 +75,8 @@ persisted to `data/events.jsonl`, so history survives restarts:
 | Key | Action |
 |---|---|
 | `c` | Run a check pass right now |
-| `o` | Open the selected product's page in your browser |
+| `o` | Open the selected product's page in your browser (from the active tab) |
+| `[` / `]` | Previous / next drop-event tab |
 | `p` | Prep checklist screen |
 | `q` | Quit |
 
@@ -106,7 +118,7 @@ Same list from the terminal: `run.py prep`, tick with
 | Command | What it does |
 |---|---|
 | `run.py ui` | The live dashboard above — recommended |
-| `run.py status` | One-shot snapshot: the table in the screenshot |
+| `run.py status` | One-shot snapshot: the table in the screenshot (`--event KEY` to filter to one drop event) |
 | `run.py check` | Run a single check pass now; fires real alerts on changes |
 | `run.py check --no-alerts` | **True dry run** — checks and prints, but writes nothing: no alerts, no state. Can never eat a reminder |
 | `run.py watch` | Headless monitor loop (for launchd/cron) — don't run at the same time as `ui`, you'd get duplicate alerts |
@@ -145,10 +157,19 @@ Always verify after editing: `run.py test-alerts`.
 ## The watchlist (`config/watchlist.yaml`)
 
 Ships pre-loaded with all 15 confirmed **30th Celebration** products
-(Sept 16 → Dec 4, 2026 waves). Anatomy of a watch:
+(Sept 16 → Dec 4, 2026 waves), grouped under one drop event.
+
+**Drop events** (the TUI tabs) are defined once at the top, then each watch
+opts in with `event:`:
 
 ```yaml
+events:
+  30th-celebration:
+    title: "30th Celebration"    # the tab label
+    notes: "Wave 1: Sept 16 · Wave 2: Dec 4"   # shown above the tab's table
+
 - id: etb-30th-target            # unique handle (shown in run.py list)
+  event: 30th-celebration        # which tab this belongs to (optional)
   name: "30th Celebration ETB — Target"
   retailer: "Target"
   source: target                 # HOW to check — see table below
@@ -159,6 +180,11 @@ Ships pre-loaded with all 15 confirmed **30th Celebration** products
   drop_time: "2026-09-16T08:00:00-04:00"   # when reminders fire from
   enabled: true
 ```
+
+When the next drop wave is announced, add a new key under `events:` and tag its
+watches — a new tab appears. Watches without an `event` go to an "Other" tab; a
+typo'd event key is rejected at load with a list of valid keys, so a watch can't
+silently land in the wrong tab.
 
 | `source` | Checked via | Needs |
 |---|---|---|

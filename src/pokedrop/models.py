@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
@@ -18,6 +19,38 @@ class Status(StrEnum):
 
 # Statuses worth pinging the user about when a watch transitions INTO them.
 ALERTABLE_TRANSITIONS = {Status.AVAILABLE}
+
+
+@dataclass
+class Event:
+    """A drop event: a named release wave that groups watches (a tab in the TUI).
+
+    Defined in the watchlist's `events:` section; watches opt in via `event: <key>`.
+    Grouping only affects presentation/filtering — monitoring and alerts are always
+    global, so a background tab can never cost you a drop.
+    """
+
+    key: str            # the YAML key watches reference, e.g. "30th-celebration"
+    title: str          # human tab label, e.g. "30th Celebration"
+    notes: str = ""     # free-form, shown in the tab (wave dates etc.)
+
+
+# Tab ids the TUI reserves for its synthetic tabs. Event keys whose pane_id would
+# collide with these (or with each other) are rejected at config load.
+ALL_TAB_ID = "tab-all"
+OTHER_TAB_ID = "tab-other"
+
+
+def pane_id(event_key: str) -> str:
+    """Event key -> valid Textual widget id (ids can't start with a digit).
+
+    Lives here (not the TUI) so config validation can reject event keys that
+    sanitize to the same pane id before they crash the TUI at mount time.
+    """
+    return "tab-" + _re_pane.sub("-", event_key)
+
+
+_re_pane = re.compile(r"[^a-zA-Z0-9_-]")
 
 
 @dataclass
@@ -48,6 +81,7 @@ class Watch:
     out_of_stock_keywords: list[str] = field(default_factory=list)
     enabled: bool = True
     notes: str = ""
+    event: str = ""             # key into the watchlist's events: section ("" = ungrouped)
 
     @property
     def drop_datetime(self) -> Optional[datetime]:
